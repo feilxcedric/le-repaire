@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Repaire</title>
+<style>
+  :root{
+    --bg: #12181B;
+    --bg-panel: #182124;
+    --ink: #EDEAE2;
+    --ink-dim: #9BA6A8;
+    --accent: #E8B44C;
+    --accent-dim: #6B5A2E;
+    --bubble-user: #233034;
+    --bubble-bot: #1D2A2D;
+    --line: #263133;
+    --radius: 14px;
+    font-size: 16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: "Fredoka", "Segoe UI", system-ui, sans-serif;
+  }
+  @font-face{
+    font-family:"Fredoka";
+    src: local("Verdana");
+  }
+
+  .wrap{
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display:flex;
+    flex-direction:column;
+    padding: 0 18px;
+  }
+
+  header{
+    padding: 36px 0 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand{
+    display:flex; align-items:baseline; gap:10px;
+  }
+  h1{
+    font-size: 2rem;
+    margin:0;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+  .brand-dot{
+    width:10px; height:10px; border-radius:50%;
+    background: var(--accent);
+    display:inline-block;
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .tagline{
+    color: var(--ink-dim);
+    margin: 8px 0 0 0;
+    font-size: 0.98rem;
+    line-height:1.5;
+    max-width: 46ch;
+  }
+
+  .invite-row{
+    display:flex; align-items:center; gap:10px;
+    margin-top:16px;
+    flex-wrap: wrap;
+  }
+  .invite-label{
+    font-size: 0.85rem; color: var(--ink-dim);
+  }
+  .link-box{
+    display:flex; align-items:center; gap:8px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 8px 7px 16px;
+  }
+  .link-box span{
+    font-size: 0.85rem; color: var(--ink-dim);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 240px;
+  }
+  .copy-btn{
+    background: var(--accent);
+    color: #1B1408;
+    border:none; border-radius:999px;
+    padding: 6px 14px;
+    font-size:0.8rem;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .copy-btn:active{ transform: scale(0.97); }
+
+  main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding: 20px 0 12px 0;
+    min-height: 0;
+  }
+
+  #log{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap: 14px;
+    padding: 6px 2px 20px 2px;
+  }
+
+  .msg{
+    max-width: 82%;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    line-height:1.48;
+    font-size: 0.97rem;
+    white-space: pre-wrap;
+  }
+  .msg.user{
+    align-self:flex-end;
+    background: var(--bubble-user);
+    border-bottom-right-radius: 4px;
+  }
+  .msg.bot{
+    align-self:flex-start;
+    background: var(--bubble-bot);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 4px;
+  }
+  .msg .name{
+    display:block;
+    font-size: 0.72rem;
+    color: var(--accent);
+    margin-bottom: 4px;
+    font-weight:600;
+  }
+  .msg.user .name{ color: var(--ink-dim); }
+
+  .typing{
+    align-self:flex-start;
+    display:flex; gap:4px; padding: 12px 16px;
+  }
+  .typing span{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--ink-dim);
+    animation: bounce 1.1s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){ animation-delay:0.15s; }
+  .typing span:nth-child(3){ animation-delay:0.3s; }
+  @keyframes bounce{
+    0%,60%,100%{ transform: translateY(0); opacity:0.5;}
+    30%{ transform: translateY(-4px); opacity:1;}
+  }
+
+  form{
+    display:flex; gap:10px;
+    padding: 14px 0 22px 0;
+    border-top: 1px solid var(--line);
+  }
+  #userName{
+    width: 96px;
+    flex-shrink:0;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink);
+    padding: 0 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+  }
+  #userInput{
+    flex:1;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink);
+    padding: 12px 14px;
+    font-size: 0.97rem;
+    font-family: inherit;
+    resize:none;
+  }
+  #userInput:focus, #userName:focus{
+    outline: 1px solid var(--accent);
+    border-color: var(--accent);
+  }
+  button[type="submit"]{
+    background: var(--accent);
+    color: #1B1408;
+    border:none;
+    border-radius: 10px;
+    padding: 0 20px;
+    font-weight:700;
+    font-size: 0.95rem;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  button[type="submit"]:disabled{
+    opacity:0.5; cursor:default;
+  }
+
+  .boss-toggle{
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .boss-toggle.active{
+    color: var(--accent);
+    border-color: var(--accent-dim);
+  }
+  .invite-row{ align-items:center; }
+
+  .boss-panel{
+    display:none;
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .boss-panel.open{ display:block; }
+  .boss-panel p{
+    margin: 0 0 10px 0;
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+    line-height:1.5;
+  }
+  .boss-row{
+    display:flex; gap:8px; flex-wrap:wrap;
+  }
+  .boss-row input[type="password"]{
+    flex:1;
+    min-width: 140px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+  }
+  .boss-row button{
+    background: var(--accent);
+    color: #1B1408;
+    border:none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight:600;
+    font-size: 0.82rem;
+    cursor:pointer;
+  }
+  .boss-actions{
+    display:none;
+    gap:8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .boss-actions.open{ display:flex; }
+  .boss-actions button{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    cursor:pointer;
+  }
+  .boss-actions button.danger{
+    border-color: #6B3A2E;
+    color: #E88C4C;
+  }
+  .boss-status{
+    font-size: 0.78rem;
+    margin-top: 8px;
+    color: var(--ink-dim);
+  }
+  .boss-badge{
+    display:inline-block;
+    font-size: 0.62rem;
+    color: #1B1408;
+    background: var(--accent);
+    border-radius: 5px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+  .lock-banner{
+    display:none;
+    background: var(--bg-panel);
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-size: 0.82rem;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 0 0 12px 0;
+  }
+  .lock-banner.open{ display:block; }
+
+  .mode-row{
+    display:flex; align-items:center; gap:10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .mode-row span{ font-size:0.8rem; color: var(--ink-dim); }
+  .mode-switch{
+    display:flex; border: 1px solid var(--line);
+    border-radius: 999px; overflow:hidden;
+  }
+  .mode-switch button{
+    background: transparent; border:none;
+    color: var(--ink-dim);
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    cursor:pointer;
+  }
+  .mode-switch button.active{
+    background: var(--accent);
+    color: #1B1408;
+    font-weight:600;
+  }
+  .allowlist-box{
+    display:none;
+    margin-top: 10px;
+  }
+  .allowlist-box.open{ display:block; }
+  .allowlist-box .boss-row{ margin-bottom:8px; }
+  .allow-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 6px 4px 12px;
+    font-size: 0.78rem;
+    margin: 0 6px 6px 0;
+  }
+  .allow-chip button{
+    background: var(--line);
+    border:none; color: var(--ink);
+    border-radius:50%;
+    width:16px; height:16px;
+    font-size: 0.65rem;
+    line-height:1;
+    cursor:pointer;
+  }
+
+  .empty-state{
+    color: var(--ink-dim);
+    font-size: 0.9rem;
+    padding: 40px 8px;
+    text-align:center;
+    line-height:1.6;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .typing span{ animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <h1>Le Repaire</h1>
+    </div>
+    <p class="tagline">Un seul salon partagé pour toute la bande. Chacun tape son prénom, tout le monde voit les mêmes messages en direct — et l'IA répond à qui l'appelle.</p>
+    <div class="invite-row">
+      <span class="invite-label">Lien à partager :</span>
+      <div class="link-box">
+        <span id="shareUrl">cette page</span>
+        <button class="copy-btn" id="copyBtn">Copier</button>
+      </div>
+      <button class="boss-toggle" id="bossToggle" type="button">Le Boss</button>
+    </div>
+    <p class="tagline" style="margin-top:10px; font-size:0.82rem;">Tous les messages du salon sont visibles par quiconque a le lien — pas de messages privés ici. Pour l'installer sur ton téléphone : copie le lien, ouvre-le, puis « Ajouter à l'écran d'accueil » dans le menu de ton navigateur.</p>
+
+    <div class="boss-panel" id="bossPanel">
+      <p id="bossIntro">Le premier mot de passe entré ici devient le mot de passe du Boss — garde-le pour toi, ne le partage à personne. Seule la personne qui le connaît peut ensuite déverrouiller les droits Boss.</p>
+      <div class="boss-row">
+        <input type="password" id="bossPass" placeholder="Mot de passe">
+        <button type="button" id="bossSubmit">Valider</button>
+      </div>
+      <div class="boss-status" id="bossStatus"></div>
+      <div class="boss-actions" id="bossActions">
+        <button type="button" id="lockBtn">Verrouiller le salon</button>
+        <button type="button" id="clearBtn" class="danger">Vider le salon</button>
+      </div>
+      <div class="mode-row" id="modeRow" style="display:none;">
+        <span>Accès au salon :</span>
+        <div class="mode-switch">
+          <button type="button" id="modePublicBtn" class="active">Public</button>
+          <button type="button" id="modePrivateBtn">Privé</button>
+        </div>
+      </div>
+      <div class="allowlist-box" id="allowlistBox">
+        <p style="margin-bottom:8px;">En mode privé, seuls les prénoms de cette liste peuvent écrire.</p>
+        <div class="boss-row">
+          <input type="text" id="allowInput" placeholder="Ajouter un prénom" autocomplete="off">
+          <button type="button" id="allowAddBtn">Ajouter</button>
+        </div>
+        <div id="allowChips"></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="lock-banner" id="lockBanner">🔒 Le salon est verrouillé par le Boss — seul lui peut écrire pour l'instant.</div>
+    <div class="lock-banner" id="privateBanner">🔒 Ce salon est privé. Ton prénom n'est pas sur la liste des potes autorisés.</div>
+    <div id="log">
+      <div class="empty-state">Personne n'a encore parlé. Écris ton prénom et lance la conversation.</div>
+    </div>
+    <form id="chatForm">
+      <input id="userName" type="text" placeholder="Prénom" maxlength="18" autocomplete="off" required>
+      <textarea id="userInput" rows="1" placeholder="Écris un message…" required></textarea>
+      <button type="submit" id="sendBtn">Envoyer</button>
+    </form>
+  </main>
+</div>
+
+<script>
+const log = document.getElementById('log');
+const form = document.getElementById('chatForm');
+const nameInput = document.getElementById('userName');
+const textInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+
+// ⚠️ Remplace cette ligne par l'URL de TON worker une fois déployé
+// Exemple : "https://le-repaire.tonpseudo.workers.dev"
+const WORKER_URL = "https://REMPLACE-PAR-TON-WORKER.workers.dev";
+
+async function storageGet(key){
+  try{
+    const res = await fetch(`${WORKER_URL}/kv?key=${encodeURIComponent(key)}`);
+    const data = await res.json();
+    return (data.value !== null && data.value !== undefined) ? { value: data.value } : null;
+  }catch(e){ return null; }
+}
+async function storageSet(key, value){
+  try{
+    await fetch(`${WORKER_URL}/kv`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value })
+    });
+  }catch(e){ console.error('Erreur de sauvegarde', e); }
+}
+
+const ROOM_KEY = 'repaire:messages';
+let emptyState = document.querySelector('.empty-state');
+let renderedCount = 0;
+let isSending = false;
+
+// restore last used name
+nameInput.value = localStorage_fallback_getName();
+
+function localStorage_fallback_getName(){
+  try{ return sessionStorage.getItem('repaire_name') || ''; }catch(e){ return ''; }
+}
+
+nameInput.addEventListener('input', applyModeUI);
+document.getElementById('copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const old = btn.textContent;
+    btn.textContent = 'Copié !';
+    setTimeout(() => btn.textContent = old, 1500);
+  }).catch(() => {});
+});
+
+function addMessage(name, text, who, boss){
+  if(emptyState){ emptyState.remove(); emptyState = null; }
+  const div = document.createElement('div');
+  div.className = 'msg ' + who;
+  const nameEl = document.createElement('span');
+  nameEl.className = 'name';
+  nameEl.textContent = name;
+  if(boss){
+    const badge = document.createElement('span');
+    badge.className = 'boss-badge';
+    badge.textContent = 'BOSS';
+    nameEl.appendChild(badge);
+  }
+  const textEl = document.createElement('div');
+  textEl.textContent = text;
+  div.appendChild(nameEl);
+  div.appendChild(textEl);
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+
+function showTyping(){
+  hideTyping();
+  const div = document.createElement('div');
+  div.className = 'typing';
+  div.id = 'typingIndicator';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+function hideTyping(){
+  const el = document.getElementById('typingIndicator');
+  if(el) el.remove();
+}
+
+// ---- Mode Boss : un seul mot de passe, défini une fois, garde les droits admin ----
+
+const BOSS_HASH_KEY = 'repaire:boss_hash';
+const LOCK_KEY = 'repaire:locked';
+let isBoss = false;
+try{ isBoss = sessionStorage.getItem('repaire_is_boss') === '1'; }catch(e){}
+let roomLocked = false;
+
+const bossToggle = document.getElementById('bossToggle');
+const bossPanel = document.getElementById('bossPanel');
+const bossIntro = document.getElementById('bossIntro');
+const bossPass = document.getElementById('bossPass');
+const bossSubmit = document.getElementById('bossSubmit');
+const bossStatus = document.getElementById('bossStatus');
+const bossActions = document.getElementById('bossActions');
+const lockBtn = document.getElementById('lockBtn');
+const clearBtn = document.getElementById('clearBtn');
+const lockBanner = document.getElementById('lockBanner');
+const modeRow = document.getElementById('modeRow');
+const modePublicBtn = document.getElementById('modePublicBtn');
+const modePrivateBtn = document.getElementById('modePrivateBtn');
+const allowlistBox = document.getElementById('allowlistBox');
+const allowInput = document.getElementById('allowInput');
+const allowAddBtn = document.getElementById('allowAddBtn');
+const allowChips = document.getElementById('allowChips');
+const privateBanner = document.getElementById('privateBanner');
+
+const MODE_KEY = 'repaire:mode';
+const ALLOWLIST_KEY = 'repaire:allowlist';
+let roomMode = 'public';
+let allowlist = [];
+
+function normalizeName(n){ return n.trim().toLowerCase(); }
+
+async function getMode(){
+  try{
+    const res = await storageGet(MODE_KEY);
+    return res ? res.value : 'public';
+  }catch(e){ return 'public'; }
+}
+async function setMode(mode){
+  try{ await storageSet(MODE_KEY, mode); }catch(e){}
+}
+async function getAllowlist(){
+  try{
+    const res = await storageGet(ALLOWLIST_KEY);
+    return res ? JSON.parse(res.value) : [];
+  }catch(e){ return []; }
+}
+async function saveAllowlist(list){
+  try{ await storageSet(ALLOWLIST_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+function renderAllowChips(){
+  allowChips.innerHTML = '';
+  allowlist.forEach(n => {
+    const chip = document.createElement('span');
+    chip.className = 'allow-chip';
+    chip.textContent = n;
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.textContent = '×';
+    rm.addEventListener('click', async () => {
+      allowlist = allowlist.filter(x => x !== n);
+      await saveAllowlist(allowlist);
+      renderAllowChips();
+    });
+    chip.appendChild(rm);
+    allowChips.appendChild(chip);
+  });
+}
+
+function applyModeUI(){
+  modePublicBtn.classList.toggle('active', roomMode === 'public');
+  modePrivateBtn.classList.toggle('active', roomMode === 'private');
+  allowlistBox.classList.toggle('open', roomMode === 'private' && isBoss);
+  const myName = normalizeName(nameInput.value);
+  const allowed = isBoss || roomMode === 'public' || allowlist.includes(myName);
+  privateBanner.classList.toggle('open', roomMode === 'private' && !allowed);
+}
+
+modePublicBtn.addEventListener('click', async () => {
+  if(!isBoss) return;
+  roomMode = 'public';
+  await setMode(roomMode);
+  applyModeUI();
+});
+modePrivateBtn.addEventListener('click', async () => {
+  if(!isBoss) return;
+  roomMode = 'private';
+  await setMode(roomMode);
+  applyModeUI();
+});
+allowAddBtn.addEventListener('click', async () => {
+  const n = normalizeName(allowInput.value);
+  if(!n) return;
+  if(!allowlist.includes(n)){
+    allowlist.push(n);
+    await saveAllowlist(allowlist);
+    renderAllowChips();
+  }
+  allowInput.value = '';
+});
+
+async function sha256hex(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function setBossUI(){
+  bossToggle.classList.toggle('active', isBoss);
+  bossActions.classList.toggle('open', isBoss);
+  modeRow.style.display = isBoss ? 'flex' : 'none';
+  if(isBoss){
+    bossStatus.textContent = 'Connecté en tant que Boss sur cet appareil.';
+    bossPass.style.display = 'none';
+    bossSubmit.style.display = 'none';
+    bossIntro.style.display = 'none';
+  }
+  applyModeUI();
+}
+setBossUI();
+
+bossToggle.addEventListener('click', () => {
+  bossPanel.classList.toggle('open');
+});
+
+bossSubmit.addEventListener('click', async () => {
+  const pass = bossPass.value;
+  if(!pass){ return; }
+  const hash = await sha256hex(pass);
+  let stored;
+  try{
+    const res = await storageGet(BOSS_HASH_KEY);
+    stored = res ? res.value : null;
+  }catch(e){ stored = null; }
+
+  if(!stored){
+    // personne n'a encore défini le mot de passe du Boss : celui-ci le devient
+    await storageSet(BOSS_HASH_KEY, hash);
+    isBoss = true;
+    try{ sessionStorage.setItem('repaire_is_boss', '1'); }catch(e){}
+    bossStatus.textContent = 'Mot de passe défini. Tu es maintenant le Boss sur cet appareil.';
+    setBossUI();
+  }else if(stored === hash){
+    isBoss = true;
+    try{ sessionStorage.setItem('repaire_is_boss', '1'); }catch(e){}
+    setBossUI();
+  }else{
+    bossStatus.textContent = 'Mot de passe incorrect.';
+  }
+  bossPass.value = '';
+});
+
+async function getLockState(){
+  try{
+    const res = await storageGet(LOCK_KEY);
+    return res ? res.value === '1' : false;
+  }catch(e){ return false; }
+}
+
+async function setLockState(locked){
+  try{ await storageSet(LOCK_KEY, locked ? '1' : '0'); }catch(e){}
+}
+
+function applyLockUI(){
+  lockBanner.classList.toggle('open', roomLocked && !isBoss);
+  lockBtn.textContent = roomLocked ? 'Déverrouiller le salon' : 'Verrouiller le salon';
+}
+
+lockBtn.addEventListener('click', async () => {
+  roomLocked = !roomLocked;
+  await setLockState(roomLocked);
+  applyLockUI();
+});
+
+clearBtn.addEventListener('click', async () => {
+  if(!confirm('Vider tout le salon pour tout le monde ?')) return;
+  await saveRoom([]);
+  log.innerHTML = '';
+  renderedCount = 0;
+  const div = document.createElement('div');
+  div.className = 'empty-state';
+  div.textContent = 'Le salon a été vidé par le Boss.';
+  log.appendChild(div);
+  emptyState = div;
+});
+
+// ---- Salon partagé : lecture / écriture dans le stockage persistant ----
+
+async function getRoom(){
+  try{
+    const res = await storageGet(ROOM_KEY);
+    return res ? JSON.parse(res.value) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+async function saveRoom(list){
+  try{
+    await storageSet(ROOM_KEY, JSON.stringify(list));
+  }catch(e){
+    console.error('Erreur de sauvegarde', e);
+  }
+}
+
+function renderNewMessages(list){
+  const wasAtBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 40;
+  for(let i = renderedCount; i < list.length; i++){
+    const m = list[i];
+    addMessage(m.name, m.text, m.who, m.boss);
+  }
+  renderedCount = list.length;
+  if(wasAtBottom) log.scrollTop = log.scrollHeight;
+}
+
+async function pollRoom(){
+  const list = await getRoom();
+  if(list.length !== renderedCount){
+    renderNewMessages(list);
+  }
+  roomLocked = await getLockState();
+  applyLockUI();
+  roomMode = await getMode();
+  allowlist = await getAllowlist();
+  renderAllowChips();
+  applyModeUI();
+}
+
+// poll every 3s so everyone sees new messages from their potes
+setInterval(pollRoom, 3000);
+pollRoom();
+
+function historyForAPI(list){
+  const msgs = [];
+  for(const m of list){
+    if(m.who === 'user'){
+      msgs.push({ role: 'user', content: `[${m.name}] ${m.text}` });
+    }else{
+      msgs.push({ role: 'assistant', content: m.text });
+    }
+  }
+  return msgs;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if(isSending) return;
+  const name = nameInput.value.trim() || 'Anonyme';
+  const text = textInput.value.trim();
+  if(!text) return;
+
+  if(roomLocked && !isBoss){
+    bossStatus.textContent = '';
+    return;
+  }
+  if(roomMode === 'private' && !isBoss && !allowlist.includes(normalizeName(name))){
+    applyModeUI();
+    return;
+  }
+
+  try{ sessionStorage.setItem('repaire_name', name); }catch(e){}
+  isSending = true;
+  sendBtn.disabled = true;
+  textInput.value = '';
+
+  // récupère l'état le plus à jour du salon avant d'écrire
+  let list = await getRoom();
+  list.push({ name, text, who: 'user', ts: Date.now(), boss: isBoss });
+  await saveRoom(list);
+  renderNewMessages(list);
+  showTyping();
+
+  try{
+    const response = await fetch(`${WORKER_URL}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system: "Tu es l'hôte du Repaire, un salon de chat partagé par toute une bande de potes, parfois nombreuse. Plusieurs personnes différentes t'écrivent dans la même conversation, chaque message est préfixé par [Prénom]. Réponds de façon chaleureuse, décontractée et naturelle, comme un pote sympa dans le groupe. Adresse-toi à la bonne personne quand c'est pertinent, et n'hésite pas à relancer tout le monde. Réponds toujours en français, reste bref (quelques phrases), et n'utilise jamais de formatage markdown.",
+        messages: historyForAPI(list)
+      })
+    });
+    const data = await response.json();
+    const reply = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('\n') || "…(pas de réponse, réessaie)";
+
+    hideTyping();
+    // relit le salon au cas où d'autres potes ont écrit entre-temps
+    list = await getRoom();
+    list.push({ name: 'Le Repaire', text: reply, who: 'bot', ts: Date.now() });
+    await saveRoom(list);
+    renderNewMessages(list);
+  }catch(err){
+    hideTyping();
+    list = await getRoom();
+    list.push({ name: 'Le Repaire', text: "Oups, je n'ai pas pu répondre. Réessaie dans un instant.", who: 'bot', ts: Date.now() });
+    await saveRoom(list);
+    renderNewMessages(list);
+  }finally{
+    isSending = false;
+    sendBtn.disabled = false;
+    textInput.focus();
+  }
+});
+
+textInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+</script>
+</body>
+</html>
